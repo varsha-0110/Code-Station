@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animated Coding Elements</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0f23, #1a1a2e, #16213e);
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .code-editor {
+            width: 800px;
+            height: 500px;
+            background: rgba(30, 30, 46, 0.9);
+            border-radius: 12px;
+            border: 2px solid #00ff88;
+            box-shadow: 0 0 40px rgba(0, 255, 136, 0.3);
+            overflow: hidden;
+            position: relative;
+            animation: editorGlow 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes editorGlow {
+            0% { box-shadow: 0 0 40px rgba(0, 255, 136, 0.3); }
+            100% { box-shadow: 0 0 60px rgba(0, 255, 136, 0.6); }
+        }
+
+        .editor-header {
+            background: #2a2a3e;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 1px solid #444;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .control {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .close { background: #ff5f57; }
+        .minimize { background: #ffbd2e; }
+        .maximize { background: #28ca42; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(0.9); }
+        }
+
+        .editor-content {
+            padding: 20px;
+            height: calc(100% - 40px);
+            overflow: hidden;
+        }
+
+        .code-line {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            opacity: 0;
+            animation: typeIn 0.5s ease-out forwards;
+        }
+
+        .line-number {
+            color: #666;
+            width: 30px;
+            text-align: right;
+            margin-right: 20px;
+            font-size: 14px;
+        }
+
+        .code-text {
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .keyword { color: #ff79c6; }
+        .string { color: #f1fa8c; }
+        .function { color: #50fa7b; }
+        .comment { color: #6272a4; }
+        .variable { color: #8be9fd; }
+        .operator { color: #ff6188; }
+
+        @keyframes typeIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .floating-elements {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .floating-icon {
+            position: absolute;
+            font-size: 24px;
+            opacity: 0.7;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .icon-1 { 
+            top: 10%; 
+            left: 10%; 
+            color: #ff79c6; 
+            animation-delay: 0s;
+        }
+        .icon-2 { 
+            top: 20%; 
+            right: 15%; 
+            color: #50fa7b; 
+            animation-delay: 1s;
+        }
+        .icon-3 { 
+            bottom: 20%; 
+            left: 20%; 
+            color: #8be9fd; 
+            animation-delay: 2s;
+        }
+        .icon-4 { 
+            bottom: 10%; 
+            right: 10%; 
+            color: #f1fa8c; 
+            animation-delay: 3s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.7; }
+            25% { transform: translateY(-20px) rotate(5deg); opacity: 1; }
+            50% { transform: translateY(-10px) rotate(-3deg); opacity: 0.8; }
+            75% { transform: translateY(-25px) rotate(2deg); opacity: 1; }
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 2px;
+            height: 18px;
+            background: #00ff88;
+            animation: blink 1s infinite;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: particle-float 8s linear infinite;
+        }
+
+        @keyframes particle-float {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% {
+                transform: translateY(-10vh) translateX(50px);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="floating-elements">
+            <div class="floating-icon icon-1">{ }</div>
+            <div class="floating-icon icon-2">&lt;/&gt;</div>
+            <div class="floating-icon icon-3">[ ]</div>
+            <div class="floating-icon icon-4">( )</div>
+        </div>
+
+        <div class="particles" id="particles"></div>
+
+        <div class="code-editor">
+            <div class="editor-header">
+                <div class="window-controls">
+                    <div class="control close"></div>
+                    <div class="control minimize"></div>
+                    <div class="control maximize"></div>
+                </div>
+            </div>
+            <div class="editor-content" id="editor">
+                <!-- Code lines will be generated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const codeLines = [
+            { line: 1, content: '<span class="keyword">function</span> <span class="function">createAnimation</span>() {' },
+            { line: 2, content: '  <span class="keyword">const</span> <span class="variable">elements</span> <span class="operator">=</span> <span class="string">"coding magic"</span>;' },
+            { line: 3, content: '  <span class="keyword">for</span> (<span class="keyword">let</span> <span class="variable">i</span> <span class="operator">=</span> <span class="string">0</span>; <span class="variable">i</span> <span class="operator">&lt;</span> <span class="variable">elements</span>.<span class="function">length</span>; <span class="variable">i</span><span class="operator">++</span>) {' },
+            { line: 4, content: '    <span class="function">animate</span>(<span class="variable">elements</span>[<span class="variable">i</span>]);' },
+            { line: 5, content: '  }' },
+            { line: 6, content: '  <span class="comment">// Magic happens here ✨</span>' },
+            { line: 7, content: '  <span class="keyword">return</span> <span class="string">"✨ Beautiful Code ✨"</span>;' },
+            { line: 8, content: '}' },
+            { line: 9, content: '' },
+            { line: 10, content: '<span class="comment">// Execute the magic</span>' },
+            { line: 11, content: '<span class="function">createAnimation</span>();<span class="cursor"></span>' }
+        ];
+
+        function createCodeLines() {
+            const editor = document.getElementById('editor');
+            
+            codeLines.forEach((line, index) => {
+                setTimeout(() => {
+                    const lineElement = document.createElement('div');
+                    lineElement.className = 'code-line';
+                    lineElement.style.animationDelay = `${index * 0.3}s`;
+                    lineElement.innerHTML = `
+                        <span class="line-number">${line.line}</span>
+                        <span class="code-text">${line.content}</span>
+                    `;
+                    editor.appendChild(lineElement);
+                }, index * 300);
+            });
+        }
+
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            
+            setInterval(() => {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = (Math.random() * 3 + 5) + 's';
+                particle.style.animationDelay = Math.random() * 2 + 's';
+                
+                particlesContainer.appendChild(particle);
+                
+                setTimeout(() => {
+                    particle.remove();
+                }, 8000);
+            }, 800);
+        }
+
+        // Initialize animations
+        createCodeLines();
+        createParticles();
+
+        // Restart animation every 15 seconds
+        setInterval(() => {
+            const editor = document.getElementById('editor');
+            editor.innerHTML = '';
+            createCodeLines();
+        }, 15000);
+    </script>
+</body>
+</html>

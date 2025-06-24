@@ -14,12 +14,17 @@ const FormComponent = () => {
     const { socket } = useSocket()
 
     const usernameRef = useRef(null)
+    const roomIdRef = useRef(null)
     const navigate = useNavigate()
 
     const createNewRoomId = () => {
-        setCurrentUser({ ...currentUser, roomId: uuidv4() })
+        const newRoomId = uuidv4()
+        setCurrentUser({ ...currentUser, roomId: newRoomId })
         toast.success("Created a new Room Id")
         usernameRef.current?.focus()
+        setTimeout(() => {
+            roomIdRef.current?.dispatchEvent(new Event("focus"))
+        }, 0)
     }
 
     const handleInputChanges = (e) => {
@@ -87,35 +92,52 @@ const FormComponent = () => {
     }, [currentUser, location.state?.redirect, navigate, setStatus, socket, status])
 
     return (
-        <div className="flex w-full max-w-[500px] flex-col items-center justify-center gap-4 p-4 sm:w-[500px] sm:p-8">
+        <div className="flex w-full max-w-[500px] flex-col items-center justify-center gap-6 p-4 sm:w-[500px] sm:p-8">
             <img src={logo} alt="Logo" className="w-full" />
-            <form onSubmit={joinRoom} className="flex w-full flex-col gap-4">
-                <input
-                    type="text"
-                    name="roomId"
-                    placeholder="Room Id"
-                    className="w-full rounded-md border border-gray-500 bg-darkHover px-3 py-3 focus:outline-none"
-                    onChange={handleInputChanges}
-                    value={currentUser.roomId}
-                />
-                <input
-                    type="text"
-                    name="username"
-                    placeholder="Username"
-                    className="w-full rounded-md border border-gray-500 bg-darkHover px-3 py-3 focus:outline-none"
-                    onChange={handleInputChanges}
-                    value={currentUser.username}
-                    ref={usernameRef}
-                />
+            <form onSubmit={joinRoom} className="flex w-full flex-col gap-10">
+                <div className="relative group">
+                    <input
+                        type="text"
+                        name="roomId"
+                        ref={roomIdRef}
+                        className="peer w-full border-b-2 border-blue-400 bg-transparent px-3 py-3 focus:outline-none"
+                        onChange={handleInputChanges}
+                        value={currentUser.roomId}
+                    />
+                    <label 
+                        className={`absolute left-3 text-[20px] pointer-events-none transition-all duration-200 ${
+                            currentUser.roomId.length > 0 
+                                ? '-top-4 text-blue-400' 
+                                : 'top-3 text-white peer-focus:-top-4 peer-focus:text-blue-400 group-hover:-top-4 group-hover:text-blue-400'
+                        }`}
+                    >Room Id</label>
+                </div>
+                <div className="relative group">
+                    <input
+                        type="text"
+                        name="username"
+                        className="peer w-full border-b-2 border-blue-400 bg-transparent px-3 py-3 focus:outline-none"
+                        onChange={handleInputChanges}
+                        value={currentUser.username}
+                        ref={usernameRef}
+                    />
+                    <label
+                        className={`absolute left-3 text-[20px] pointer-events-none transition-all duration-200 ${
+                            currentUser.username.length > 0 
+                                ? '-top-4 text-blue-400' 
+                                : 'top-3 text-white peer-focus:-top-4 peer-focus:text-blue-400 group-hover:-top-4 group-hover:text-blue-400'
+                        }`}
+                    >Username</label>
+                </div>
                 <button
                     type="submit"
-                    className="mt-2 w-full rounded-md bg-primary px-8 py-3 text-lg font-semibold text-black"
+                    className="mt-2 w-full mx-auto rounded-full bg-blue-400 px-8 py-3 text-xl font-semibold text-black"
                 >
                     Join
                 </button>
             </form>
             <button
-                className="cursor-pointer select-none underline"
+                className="cursor-pointer select-none text-white hover:text-blue-400"
                 onClick={createNewRoomId}
             >
                 Generate Unique Room Id
@@ -125,5 +147,3 @@ const FormComponent = () => {
 }
 
 export default FormComponent
-
-
