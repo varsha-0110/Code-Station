@@ -46,31 +46,60 @@ function ChatList() {
 
     return (
         <div
-            className="flex-grow overflow-auto rounded-md bg-darkHover p-2"
+            className="flex-grow overflow-auto rounded-md bg-transparent p-4 space-y-3"
             ref={messagesContainerRef}
             onScroll={handleScroll}
         >
-            {messages.map((message, index) => (
-                <div
-                    key={index}
-                    className={
-                        "mb-2 w-[80%] self-end break-words rounded-md bg-dark px-3 py-2" +
-                        (message.username === currentUser.username
-                            ? " ml-auto "
-                            : "")
-                    }
-                >
-                    <div className="flex justify-between">
-                        <span className="text-xs text-primary">
-                            {message.username}
-                        </span>
-                        <span className="text-xs text-white">
-                            {message.timestamp}
-                        </span>
+            {messages.map((message, index) => {
+                const isCurrentUser = message.username === currentUser.username;
+                
+                return (
+                    <div
+                        key={index}
+                        className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
+                    >
+                        <div
+                            className={`
+                                max-w-[75%] min-w-[200px] rounded-lg px-4 py-3 shadow-sm border
+                                ${isCurrentUser 
+                                    ? 'bg-gray-900 text-white border-blue-600' 
+                                    : 'bg-white text-gray-800 border-gray-200'
+                                }
+                            `}
+                        >
+                            <div className="flex justify-between items-center mb-1">
+                                <span 
+                                    className={`text-l font-medium ${
+                                        isCurrentUser 
+                                            ? 'text-blue-400' 
+                                            : 'text-gray-600'
+                                    }`}
+                                >
+                                    {message.username}
+                                </span>
+                                <span 
+                                    className={`text-xs ${
+                                        isCurrentUser 
+                                            ? 'text-blue-400' 
+                                            : 'text-gray-500'
+                                    }`}
+                                >
+                                    {message.timestamp}
+                                </span>
+                            </div>
+                            <p className="text-sm leading-relaxed break-words">
+                                {message.message}
+                            </p>
+                        </div>
                     </div>
-                    <p className="py-1">{message.message}</p>
+                );
+            })}
+            
+            {messages.length === 0 && (
+                <div className="flex items-center justify-center h-full">
+                    <p className="text-gray-500 text-sm">No messages yet. Start the conversation!</p>
                 </div>
-            ))}
+            )}
         </div>
     );
 }

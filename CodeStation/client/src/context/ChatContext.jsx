@@ -19,15 +19,19 @@ function ChatContextProvider({ children }) {
     const [isNewMessage, setIsNewMessage] = useState(false)
     const [lastScrollHeight, setLastScrollHeight] = useState(0)
 
-    useEffect(() => {
-        socket.on(SocketEvent.RECEIVE_MESSAGE, ({ message }) => {
-            setMessages((messages) => [...messages, message])
-            setIsNewMessage(true)
-        })
-        return () => {
-            socket.off(SocketEvent.RECEIVE_MESSAGE)
-        }
-    }, [socket])
+    // In your ChatContext useEffect:
+useEffect(() => {
+    socket.on(SocketEvent.RECEIVE_MESSAGE, ({ message }) => {
+        console.log("Received message:", message)
+        console.log("Current room:", socket.id) // Add this
+        setMessages((messages) => [...messages, message])
+        setIsNewMessage(true)
+    })
+    return () => {
+        socket.off(SocketEvent.RECEIVE_MESSAGE)
+    }
+}, [socket])
+
 
     return (
         <ChatContext.Provider

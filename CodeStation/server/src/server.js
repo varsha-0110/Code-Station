@@ -127,15 +127,18 @@ io.on("connection", (socket) => {
 
 	// Handle file actions
 	socket.on(
-		SocketEvent.SYNC_FILE_STRUCTURE,
-		({ fileStructure, openFiles, activeFile, socketId }) => {
-			io.to(socketId).emit(SocketEvent.SYNC_FILE_STRUCTURE, {
-				fileStructure,
-				openFiles,
-				activeFile,
-			})
-		}
-	)
+  SocketEvent.SYNC_FILE_STRUCTURE,
+  ({ fileStructure, openFiles, activeFile }) => {
+    const roomId = getRoomId(socket.id);
+    if (!roomId) return;
+    socket.broadcast.to(roomId).emit(SocketEvent.SYNC_FILE_STRUCTURE, {
+      fileStructure,
+      openFiles,
+      activeFile,
+    });
+  }
+);
+
 
 	socket.on(
 		SocketEvent.DIRECTORY_CREATED,
@@ -233,13 +236,14 @@ io.on("connection", (socket) => {
 	})
 
 	// Handle chat actions
-	socket.on(SocketEvent.SEND_MESSAGE, ({ message }) => {
-		const roomId = getRoomId(socket.id)
-		if (!roomId) return
-		socket.broadcast
-			.to(roomId)
-			.emit(SocketEvent.RECEIVE_MESSAGE, { message })
-	})
+	// In your server code, replace this:
+socket.on(SocketEvent.SEND_MESSAGE, ({ message }) => {
+    console.log("Server received message:", message)
+    const roomId = getRoomId(socket.id)
+    if (!roomId) return
+    // Change this line:
+    io.to(roomId).emit(SocketEvent.RECEIVE_MESSAGE, { message })
+})
 
 	// Handle cursor position
 	socket.on(SocketEvent.TYPING_START, ({ cursorPosition }) => {
