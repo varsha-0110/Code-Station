@@ -1,8 +1,8 @@
 # Contributing to Code Sync
 
-We welcome contributions to the Code Sync project! Whether you're reporting a bug, suggesting a new feature, or fixing a typo, your input is valuable to us. Here are some guidelines to help you get started:
+We welcome contributions to the CodeStation project! Whether you're reporting a bug, suggesting a new feature, or fixing a typo, your input is valuable to us. Here are some guidelines to help you get started:
 
-Thank you for considering contributing to code sync! Follow the steps below to contribute:
+Thank you for considering contributing to CodeStation! Follow the steps below to contribute:
 
 ## Getting Started
 
@@ -10,7 +10,7 @@ Thank you for considering contributing to code sync! Follow the steps below to c
 
 2. **Clone the Repository:** Clone your forked repository to your local machine:
    ```bash
-   git clone https://github.com/<your_username>/Code-Sync.git
+   git clone https://github.com/<your_username>/Code-Station.git
    ```
 
 ## Making Changes
