@@ -15,7 +15,7 @@ function Select({ onChange, value, options, title }) {
         <div className="relative w-full">
             <label className="mb-2">{title}</label>
             <select
-                className="w-full rounded-md border-none bg-darkHover px-4 py-2 text-white outline-none"
+                className="w-full rounded-md border-2 border-blue-400 bg-gray-900 px-4 py-2 text-white outline-none"
                 value={value}
                 onChange={onChange}
             >

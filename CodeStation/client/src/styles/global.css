@@ -7,7 +7,7 @@
 
 @layer components {
     .view-title {
-        @apply mb-2 w-full border-b pb-2 text-start text-lg;
+        @apply mb-2 w-full border-b-2 border-blue-400 pb-2 text-start text-lg;
     }
 }
 *{
