@@ -3,7 +3,8 @@ import {
     useContext,
     useMemo,
     useEffect,
-    useCallback
+    useCallback,
+    useRef
 } from "react"
 import { toast } from "react-hot-toast"
 import { io } from "socket.io-client"
@@ -33,9 +34,12 @@ const SocketProvider = ({ children }) => {
         setCurrentUser,
         drawingData,
         setDrawingData,
+        // Add messages state to AppContext if not already present
+        setMessages, // You'll need to add this to your AppContext
     } = useAppContext()
 
     const socket = useMemo(() => io(BACKEND_URL, { reconnectionAttempts: 2 }), [])
+    const syncTimeoutRef = useRef(null)
 
     const handleError = useCallback((err) => {
         console.error("Socket error:", err)
@@ -58,8 +62,15 @@ const SocketProvider = ({ children }) => {
         toast.dismiss()
         setStatus(USER_STATUS.JOINED)
 
+        // Only show loading toast if there are other users (potential data to sync)
         if (users.length > 1) {
             toast.loading("Syncing data, please wait...")
+            
+            // Set a timeout to dismiss the loading toast if sync takes too long
+            syncTimeoutRef.current = setTimeout(() => {
+                toast.dismiss()
+                console.log("Sync timeout - dismissing loading toast")
+            }, 5000) // 5 second timeout
         }
     }, [setCurrentUser, setStatus, setUsers])
 
@@ -68,39 +79,103 @@ const SocketProvider = ({ children }) => {
         setUsers((prevUsers) => prevUsers.filter(u => u.username !== user.username))
     }, [setUsers])
 
+    const handleUserJoined = useCallback(({ user }) => {
+        setUsers((prevUsers) => {
+            // Avoid duplicates
+            if (prevUsers.some(u => u.username === user.username)) return prevUsers;
+            return [...prevUsers, user];
+        });
+        toast.success(`${user.username} joined the room`);
+    }, [setUsers]);
+
     const handleRequestDrawing = useCallback(({ socketId }) => {
-        socket.emit(SocketEvent.SYNC_DRAWING, { socketId, drawingData })
+        console.log("Requesting drawing sync for socketId:", socketId);
+        if (drawingData && Object.keys(drawingData).length > 0) {
+            socket.emit(SocketEvent.SYNC_DRAWING, { socketId, drawingData });
+        } else {
+            // If there's no drawing data to sync, send empty data
+            socket.emit(SocketEvent.SYNC_DRAWING, { socketId, drawingData: {} });
+        }
     }, [drawingData, socket])
 
     const handleDrawingSync = useCallback(({ drawingData }) => {
-        setDrawingData(drawingData)
+        console.log("Received drawing sync data:", drawingData);
+        setDrawingData(drawingData);
+        
+        // Clear the sync timeout and dismiss loading toast
+        if (syncTimeoutRef.current) {
+            clearTimeout(syncTimeoutRef.current)
+            syncTimeoutRef.current = null
+        }
+        toast.dismiss();
     }, [setDrawingData])
+
+    // Handle when there's no drawing data to sync (new event from backend)
+    const handleNoDrawingData = useCallback(() => {
+        console.log("No drawing data available for sync");
+        
+        // Clear the sync timeout and dismiss loading toast
+        if (syncTimeoutRef.current) {
+            clearTimeout(syncTimeoutRef.current)
+            syncTimeoutRef.current = null
+        }
+        toast.dismiss();
+    }, [])
+
+    // NEW: Handle message synchronization
+    const handleSyncMessages = useCallback(({ messages }) => {
+        console.log("Received message sync data:", messages);
+        setMessages(messages);
+        
+        // Clear the sync timeout and dismiss loading toast if this is the last sync operation
+        if (syncTimeoutRef.current) {
+            clearTimeout(syncTimeoutRef.current)
+            syncTimeoutRef.current = null
+        }
+        toast.dismiss();
+    }, [setMessages])
 
     useEffect(() => {
         socket.on("connect_error", handleError)
         socket.on("connect_failed", handleError)
         socket.on(SocketEvent.USERNAME_EXISTS, handleUsernameExist)
         socket.on(SocketEvent.JOIN_ACCEPTED, handleJoiningAccept)
+        socket.on(SocketEvent.USER_JOINED, handleUserJoined)
         socket.on(SocketEvent.USER_DISCONNECTED, handleUserLeft)
         socket.on(SocketEvent.REQUEST_DRAWING, handleRequestDrawing)
         socket.on(SocketEvent.SYNC_DRAWING, handleDrawingSync)
+        // Add handler for no drawing data event
+        socket.on(SocketEvent.NO_DRAWING_DATA, handleNoDrawingData)
+        // NEW: Add handler for message synchronization
+        socket.on(SocketEvent.SYNC_MESSAGES, handleSyncMessages)
 
         return () => {
+            // Clear timeout on cleanup
+            if (syncTimeoutRef.current) {
+                clearTimeout(syncTimeoutRef.current)
+            }
+            
             socket.off("connect_error", handleError)
             socket.off("connect_failed", handleError)
             socket.off(SocketEvent.USERNAME_EXISTS, handleUsernameExist)
             socket.off(SocketEvent.JOIN_ACCEPTED, handleJoiningAccept)
+            socket.off(SocketEvent.USER_JOINED, handleUserJoined)
             socket.off(SocketEvent.USER_DISCONNECTED, handleUserLeft)
             socket.off(SocketEvent.REQUEST_DRAWING, handleRequestDrawing)
             socket.off(SocketEvent.SYNC_DRAWING, handleDrawingSync)
+            socket.off(SocketEvent.NO_DRAWING_DATA, handleNoDrawingData)
+            socket.off(SocketEvent.SYNC_MESSAGES, handleSyncMessages)
         }
     }, [
         handleError,
         handleUsernameExist,
         handleJoiningAccept,
+        handleUserJoined,
         handleUserLeft,
         handleRequestDrawing,
         handleDrawingSync,
+        handleNoDrawingData,
+        handleSyncMessages,
         socket,
     ])
 
@@ -113,4 +188,3 @@ const SocketProvider = ({ children }) => {
 
 export { SocketProvider }
 export default SocketContext
-

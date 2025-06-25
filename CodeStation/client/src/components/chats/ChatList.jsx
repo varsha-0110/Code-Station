@@ -63,7 +63,7 @@ function ChatList() {
                                 max-w-[75%] min-w-[200px] rounded-lg px-4 py-3 shadow-sm border
                                 ${isCurrentUser 
                                     ? 'bg-gray-900 text-white border-blue-600' 
-                                    : 'bg-white text-gray-800 border-gray-200'
+                                    : 'bg-transparent text-white border-gray-300'
                                 }
                             `}
                         >
@@ -72,7 +72,7 @@ function ChatList() {
                                     className={`text-l font-medium ${
                                         isCurrentUser 
                                             ? 'text-blue-400' 
-                                            : 'text-gray-600'
+                                            : 'text-gray-300'
                                     }`}
                                 >
                                     {message.username}
@@ -81,7 +81,7 @@ function ChatList() {
                                     className={`text-xs ${
                                         isCurrentUser 
                                             ? 'text-blue-400' 
-                                            : 'text-gray-500'
+                                            : 'text-gray-300'
                                     }`}
                                 >
                                     {message.timestamp}

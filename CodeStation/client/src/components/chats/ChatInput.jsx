@@ -2,6 +2,7 @@ import { useAppContext } from "@/context/AppContext";
 import { useChatRoom } from "@/context/ChatContext";
 import { useSocket } from "@/context/SocketContext";
 import { formatDate } from "@/utils/formateDate";
+import { SocketEvent } from "@/types/socket";
 import { useRef } from "react";
 import { LuSendHorizontal } from "react-icons/lu";
 import { v4 as uuidV4 } from "uuid";
@@ -33,8 +34,7 @@ function ChatInput() {
                 timestamp: formatDate(new Date().toISOString()),
             };
 
-            socket.emit("SEND_MESSAGE", { message });
-            setMessages((messages) => [...messages, message]);
+            socket.emit(SocketEvent.SEND_MESSAGE, { message });
 
             if (inputRef.current) inputRef.current.value = "";
         }
@@ -43,7 +43,7 @@ function ChatInput() {
     return (
         <form
             onSubmit={handleSendMessage}
-            className="flex justify-between rounded-md border border-primary"
+            className="flex justify-between rounded-md border border-2 border-blue-400"
         >
             <input
                 type="text"
@@ -52,7 +52,7 @@ function ChatInput() {
                 ref={inputRef}
             />
             <button
-                className="flex items-center justify-center rounded-r-md bg-primary p-2 text-black"
+                className="flex items-center justify-center rounded-r-md bg-blue-400 p-2 text-black"
                 type="submit"
             >
                 <LuSendHorizontal size={24} />

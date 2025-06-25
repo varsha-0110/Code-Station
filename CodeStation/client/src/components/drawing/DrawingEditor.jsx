@@ -1,13 +1,9 @@
 import { useAppContext } from "@/context/AppContext";
 import { useSocket } from "@/context/SocketContext";
+import { SocketEvent } from "@/types/socket";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useCallback, useEffect } from "react";
 import { Tldraw, useEditor } from "tldraw";
-
-// Socket event constants
-const SocketEvent = {
-    DRAWING_UPDATE: "DRAWING_UPDATE"
-};
 
 /**
  * Wrapper component for the collaborative drawing editor using Tldraw.

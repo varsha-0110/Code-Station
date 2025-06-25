@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from "react"
 import { SocketEvent } from "@/types/socket"
 import { useSocket } from "./SocketContext"
@@ -19,19 +18,28 @@ function ChatContextProvider({ children }) {
     const [isNewMessage, setIsNewMessage] = useState(false)
     const [lastScrollHeight, setLastScrollHeight] = useState(0)
 
-    // In your ChatContext useEffect:
-useEffect(() => {
-    socket.on(SocketEvent.RECEIVE_MESSAGE, ({ message }) => {
-        console.log("Received message:", message)
-        console.log("Current room:", socket.id) // Add this
-        setMessages((messages) => [...messages, message])
-        setIsNewMessage(true)
-    })
-    return () => {
-        socket.off(SocketEvent.RECEIVE_MESSAGE)
-    }
-}, [socket])
+    useEffect(() => {
+        // Handle receiving new messages
+        socket.on(SocketEvent.RECEIVE_MESSAGE, ({ message }) => {
+            console.log("Received message:", message);
+            console.log("Current socket id:", socket.id);
+            console.log("Message from user:", message.username);
+            setMessages((prevMessages) => [...prevMessages, message]);
+            setIsNewMessage(true);
+        });
 
+        // NEW: Handle synchronized messages (chat history)
+        socket.on(SocketEvent.SYNC_MESSAGES, ({ messages: syncedMessages }) => {
+            console.log("Received synchronized messages:", syncedMessages);
+            setMessages(syncedMessages);
+            // Don't set isNewMessage to true for synced messages as they're historical
+        });
+
+        return () => {
+            socket.off(SocketEvent.RECEIVE_MESSAGE);
+            socket.off(SocketEvent.SYNC_MESSAGES);
+        };
+    }, [socket]);
 
     return (
         <ChatContext.Provider
@@ -50,6 +58,4 @@ useEffect(() => {
 }
 
 export { ChatContextProvider }
-export default ChatContext 
-
-
+export default ChatContext
