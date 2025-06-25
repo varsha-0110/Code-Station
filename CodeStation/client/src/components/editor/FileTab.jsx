@@ -74,7 +74,7 @@ function FileTab() {
                     key={file.id}
                     className={cn(
                         "flex w-fit cursor-pointer items-center rounded-t-md px-2 py-1 text-white",
-                        { "bg-darkHover": file.id === activeFile?.id },
+                        { "file-tab-active": file.id === activeFile?.id },
                     )}
                     onClick={() => changeActiveFile(file.id)}
                 >

@@ -133,11 +133,40 @@ body {
 
 .cm-editor {
     max-height: 93vh;
+    background: #111827; /* Tailwind gray-900 */
+    border-radius: 1rem;
 }
 
 .cm-editor .cm-scroller {
     font-family: "Space Mono", monospace;
-    /* min-height: 100vh; */
+    background: #111827 !important; /* gray-900 */
+    border-radius: 1rem;
+}
+
+/* Heading text color */
+.view-title {
+    color: white !important; /* Tailwind blue-400 */
+    border-bottom: 2px solid #60a5fa;
+}
+
+/* Custom Scrollbar for Editor */
+.cm-editor ::-webkit-scrollbar {
+    width: var(--sb-size);
+    height: var(--sb-size);
+}
+
+.cm-editor ::-webkit-scrollbar-track {
+    background: #1f2937; /* Tailwind gray-800 */
+    border-radius: 5px;
+}
+
+.cm-editor ::-webkit-scrollbar-thumb {
+    background: #374151; /* Tailwind gray-700 for contrast */
+    border-radius: 5px;
+}
+
+.cm-editor {
+    scrollbar-color: #374151 #1f2937;
 }
 
 select {
@@ -155,6 +184,13 @@ select {
     .cm-editor .cm-scroller {
         min-height: calc(93vh - 60px);
     }
+}
+
+/* FileTab active file background and border */
+.file-tab-active {
+    background: #111827 !important; /* Tailwind gray-900 */
+    border-bottom: 2px solid #60a5fa !important; /* Tailwind blue-400 */
+    color: #60a5fa !important;
 }
 
 

@@ -52,21 +52,21 @@ function UsersView() {
             <div className="flex flex-col items-center gap-4 pt-4">
                 <div className="flex w-full gap-4">
                     <button
-                        className="flex flex-grow items-center justify-center rounded-md bg-white p-3 text-black"
+                        className="flex flex-grow items-center justify-center rounded-md  bg-gray-900 p-3 text-gray-100 border-2 border-gray-100"
                         onClick={shareURL}
                         title="Share Link"
                     >
                         <IoShareOutline size={26} />
                     </button>
                     <button
-                        className="flex flex-grow items-center justify-center rounded-md bg-white p-3 text-black"
+                        className="flex flex-grow items-center justify-center rounded-md bg-gray-900 p-3 text-gray-100 border-2 border-gray-100"
                         onClick={copyURL}
                         title="Copy Link"
                     >
                         <LuCopy size={22} />
                     </button>
                     <button
-                        className="flex flex-grow items-center justify-center rounded-md bg-primary p-3 text-black"
+                        className="flex flex-grow items-center justify-center rounded-md bg-gray-900 text-red-400 p-3 border-2 border-red-400"
                         onClick={leaveRoom}
                         title="Leave room"
                     >
