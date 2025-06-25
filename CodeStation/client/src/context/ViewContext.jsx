@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react"
+import { createContext, useContext, useState, useEffect } from "react"
 
 import ChatsView from "@/components/sidebar/sidebar-views/ChatsView"
 // import CopilotView from "@/components/sidebar/sidebar-views/CopilotView"
@@ -35,8 +35,35 @@ export const useViews = () => {
 const ViewContextProvider = ({ children }) => {
     const { isMobile } = useWindowDimensions()
 
-    const [activeView, setActiveView] = useState(VIEWS.FILES)
+    // Load from localStorage if available
+    const getInitialView = () => {
+        if (typeof window !== "undefined") {
+            const stored = localStorage.getItem("sidebarActiveView")
+            if (stored && Object.values(VIEWS).includes(stored)) {
+                return stored
+            }
+        }
+        return VIEWS.FILES
+    }
+
+    const [activeView, setActiveViewState] = useState(getInitialView)
     const [isSidebarOpen, setIsSidebarOpen] = useState(!isMobile)
+
+    // Wrap setActiveView to persist to localStorage
+    const setActiveView = (view) => {
+        setActiveViewState(view)
+        if (typeof window !== "undefined") {
+            localStorage.setItem("sidebarActiveView", view)
+        }
+    }
+
+    useEffect(() => {
+        // On mount, ensure the view is set from localStorage
+        const stored = localStorage.getItem("sidebarActiveView")
+        if (stored && Object.values(VIEWS).includes(stored)) {
+            setActiveViewState(stored)
+        }
+    }, [])
 
     const [viewComponents] = useState({
         [VIEWS.FILES]: <FilesView />,
