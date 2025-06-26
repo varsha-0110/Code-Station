@@ -10,15 +10,10 @@ sayHi()`;
 // Initial file structure object
 export const initialFileStructure = {
   name: "root",
-  id: uuidv4(),
+  id: "root",
   type: "directory",
   children: [
-    {
-      id: uuidv4(),
-      type: "file",
-      name: "index.js",
-      content: initialCode,
-    },
+    // No default files
   ],
 };
 

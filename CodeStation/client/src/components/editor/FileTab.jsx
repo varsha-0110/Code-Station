@@ -2,6 +2,7 @@ import { useFileSystem } from "@/context/FileContext"
 import { getIconClassName } from "@/utils/getIconClassName"
 import { Icon } from "@iconify/react"
 import { IoClose } from "react-icons/io5"
+import { MdDelete } from "react-icons/md"
 import cn from "classnames"
 import { useEffect, useRef } from "react"
 import customMapping from "@/utils/customMapping"
@@ -92,7 +93,10 @@ function FileTab() {
                     <IoClose
                         className="ml-3 inline rounded-md hover:bg-darkHover"
                         size={20}
-                        onClick={() => closeFile(file.id)}
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            closeFile(file.id)
+                        }}
                     />
                 </span>
             ))}

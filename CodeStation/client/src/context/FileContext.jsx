@@ -33,10 +33,32 @@ function FileContextProvider({ children }) {
     const { socket } = useSocket()
     const { setUsers, drawingData } = useAppContext()
 
-    const [fileStructure, setFileStructure] = useState(initialFileStructure)
-    const initialOpenFiles = fileStructure.children || []
-    const [openFiles, setOpenFiles] = useState(initialOpenFiles)
-    const [activeFile, setActiveFile] = useState(openFiles[0] || null)
+    // Load from localStorage if available
+    const [fileStructure, setFileStructure] = useState(() => {
+        const saved = localStorage.getItem('fileStructure')
+        return saved ? JSON.parse(saved) : initialFileStructure
+    })
+    const [openFiles, setOpenFiles] = useState(() => {
+        const saved = localStorage.getItem('openFiles')
+        return saved ? JSON.parse(saved) : []
+    })
+    const [activeFile, setActiveFile] = useState(() => {
+        const saved = localStorage.getItem('activeFile')
+        return saved ? JSON.parse(saved) : null
+    })
+
+    // Persist fileStructure to localStorage on every change
+    useEffect(() => {
+        localStorage.setItem('fileStructure', JSON.stringify(fileStructure))
+    }, [fileStructure])
+
+    // Persist openFiles and activeFile to localStorage on every change
+    useEffect(() => {
+        localStorage.setItem('openFiles', JSON.stringify(openFiles))
+    }, [openFiles])
+    useEffect(() => {
+        localStorage.setItem('activeFile', JSON.stringify(activeFile))
+    }, [activeFile])
 
     const toggleDirectory = (dirId) => {
         const toggleDir = (directory) => {
@@ -50,7 +72,20 @@ function FileContextProvider({ children }) {
             }
             return directory
         }
-        setFileStructure(prev => toggleDir(prev))
+        setFileStructure(prev => {
+            const updated = toggleDir(prev)
+            // Recompute openFiles and activeFile from the new structure
+            const newOpenFiles = openFiles.map(f => getFileById(updated, f.id)).filter(Boolean)
+            const newActiveFile = activeFile ? getFileById(updated, activeFile.id) : null
+            setOpenFiles(newOpenFiles)
+            setActiveFile(newActiveFile)
+            socket.emit(SocketEvent.SYNC_FILE_STRUCTURE, {
+                fileStructure: updated,
+                openFiles: newOpenFiles,
+                activeFile: newActiveFile,
+            })
+            return updated
+        })
     }
 
     const collapseDirectories = () => {
@@ -59,7 +94,20 @@ function FileContextProvider({ children }) {
             isOpen: false,
             children: directory.children?.map(collapseDir),
         })
-        setFileStructure(prev => collapseDir(prev))
+        setFileStructure(prev => {
+            const updated = collapseDir(prev)
+            // Recompute openFiles and activeFile from the new structure
+            const newOpenFiles = openFiles.map(f => getFileById(updated, f.id)).filter(Boolean)
+            const newActiveFile = activeFile ? getFileById(updated, activeFile.id) : null
+            setOpenFiles(newOpenFiles)
+            setActiveFile(newActiveFile)
+            socket.emit(SocketEvent.SYNC_FILE_STRUCTURE, {
+                fileStructure: updated,
+                openFiles: newOpenFiles,
+                activeFile: newActiveFile,
+            })
+            return updated
+        })
     }
 
     const createDirectory = useCallback((parentDirId, newDir, sendToSocket = true) => {
@@ -161,7 +209,7 @@ function FileContextProvider({ children }) {
         socket.emit(SocketEvent.DIRECTORY_DELETED, { dirId })
     }, [socket])
 
-    const openFile = (fileId) => {
+    const openFile = (fileId, emitSocket = true) => {
         const file = getFileById(fileStructure, fileId)
         if (file) {
             updateFileContent(activeFile?.id || "", activeFile?.content || "")
@@ -174,10 +222,13 @@ function FileContextProvider({ children }) {
                 )
             )
             setActiveFile(file)
+            if (emitSocket && fileId !== activeFile?.id) {
+                socket.emit(SocketEvent.ACTIVE_FILE_CHANGED, { fileId })
+            }
         }
     }
 
-    const closeFile = (fileId) => {
+    const closeFile = (fileId, sendToSocket = true) => {
         if (fileId === activeFile?.id) {
             updateFileContent(activeFile.id, activeFile.content || "")
             const index = openFiles.findIndex(f => f.id === fileId)
@@ -188,13 +239,19 @@ function FileContextProvider({ children }) {
             )
         }
         setOpenFiles(prev => prev.filter(f => f.id !== fileId))
+        if (sendToSocket) {
+            socket.emit(SocketEvent.CLOSE_FILE_TAB, { fileId })
+        }
     }
 
     const createFile = useCallback((parentDirId, file, sendToSocket = true) => {
         let num = 1
         if (!parentDirId) parentDirId = fileStructure.id
         const parentDir = findParentDirectory(fileStructure, parentDirId)
-        if (!parentDir) throw new Error("Parent not found")
+        if (!parentDir) {
+            if (!sendToSocket) return null; // Fail gracefully if from socket
+            throw new Error("Parent not found")
+        }
 
         let newFile
         if (typeof file === "string") {
@@ -232,7 +289,7 @@ function FileContextProvider({ children }) {
         return newFile.id
     }, [fileStructure, socket])
 
-    const updateFileContent = useCallback((fileId, newContent) => {
+    const updateFileContent = useCallback((fileId, newContent, sendToSocket = true) => {
         const update = (directory) => {
             if (directory.type === "file" && directory.id === fileId) {
                 return { ...directory, content: newContent }
@@ -245,13 +302,20 @@ function FileContextProvider({ children }) {
             return directory
         }
 
-        setFileStructure(prev => update(prev))
-        if (openFiles.some(f => f.id === fileId)) {
-            setOpenFiles(prev =>
-                prev.map(f => (f.id === fileId ? { ...f, content: newContent } : f))
-            )
+        setFileStructure(prev => {
+            const updated = update(prev)
+            // After updating fileStructure, update openFiles and activeFile from the new structure
+            const updatedFile = getFileById(updated, fileId)
+            setOpenFiles(prev => prev.map(f => f.id === fileId ? updatedFile : f))
+            if (activeFile && activeFile.id === fileId) {
+                setActiveFile(updatedFile)
+            }
+            return updated
+        })
+        if (sendToSocket) {
+            socket.emit(SocketEvent.FILE_UPDATED, { fileId, newContent })
         }
-    }, [openFiles])
+    }, [activeFile, socket])
 
     const renameFile = useCallback((fileId, newName, sendToSocket = true) => {
         const rename = (directory) => {
@@ -312,7 +376,81 @@ function FileContextProvider({ children }) {
         zip.generateAsync({ type: "blob" }).then((blob) => saveAs(blob, "download.zip"))
     }
 
-    // Socket handlers (shortened here - full version can be added if needed)
+    // --- Real-time sync listeners ---
+    useEffect(() => {
+        // FILE CREATED
+        const handleFileCreated = ({ parentDirId, newFile }) => {
+            createFile(parentDirId || fileStructure.id, newFile, false)
+        }
+        // FILE DELETED
+        const handleFileDeleted = ({ fileId }) => {
+            deleteFile(fileId, false)
+        }
+        // FILE RENAMED
+        const handleFileRenamed = ({ fileId, newName }) => {
+            renameFile(fileId, newName, false)
+        }
+        // DIRECTORY CREATED
+        const handleDirectoryCreated = ({ parentDirId, newDirectory }) => {
+            createDirectory(parentDirId, newDirectory, false)
+        }
+        // DIRECTORY DELETED
+        const handleDirectoryDeleted = ({ dirId }) => {
+            deleteDirectory(dirId, false)
+        }
+        // DIRECTORY RENAMED
+        const handleDirectoryRenamed = ({ dirId, newName }) => {
+            renameDirectory(dirId, newName, false)
+        }
+        // FILE UPDATED (optional, if you want real-time content sync)
+        const handleFileUpdated = ({ fileId, newContent }) => {
+            updateFileContent(fileId, newContent, false)
+        }
+        // DIRECTORY UPDATED (optional)
+        const handleDirectoryUpdated = ({ dirId, children }) => {
+            updateDirectory(dirId, children, false)
+        }
+        // SYNC_FILE_STRUCTURE handler
+        const handleSyncFileStructure = ({ fileStructure, openFiles, activeFile }) => {
+            setFileStructure(fileStructure)
+            setOpenFiles(openFiles)
+            setActiveFile(activeFile)
+        }
+        // ACTIVE_FILE_CHANGED handler
+        const handleActiveFileChanged = ({ fileId }) => {
+            openFile(fileId, false)
+        }
+        // CLOSE_FILE_TAB handler
+        const handleCloseFileTab = ({ fileId }) => {
+            closeFile(fileId, false)
+        }
+
+        socket.on(SocketEvent.FILE_CREATED, handleFileCreated)
+        socket.on(SocketEvent.FILE_DELETED, handleFileDeleted)
+        socket.on(SocketEvent.FILE_RENAMED, handleFileRenamed)
+        socket.on(SocketEvent.DIRECTORY_CREATED, handleDirectoryCreated)
+        socket.on(SocketEvent.DIRECTORY_DELETED, handleDirectoryDeleted)
+        socket.on(SocketEvent.DIRECTORY_RENAMED, handleDirectoryRenamed)
+        socket.on(SocketEvent.FILE_UPDATED, handleFileUpdated)
+        socket.on(SocketEvent.DIRECTORY_UPDATED, handleDirectoryUpdated)
+        socket.on(SocketEvent.SYNC_FILE_STRUCTURE, handleSyncFileStructure)
+        socket.on(SocketEvent.ACTIVE_FILE_CHANGED, handleActiveFileChanged)
+        socket.on(SocketEvent.CLOSE_FILE_TAB, handleCloseFileTab)
+
+        return () => {
+            socket.off(SocketEvent.FILE_CREATED, handleFileCreated)
+            socket.off(SocketEvent.FILE_DELETED, handleFileDeleted)
+            socket.off(SocketEvent.FILE_RENAMED, handleFileRenamed)
+            socket.off(SocketEvent.DIRECTORY_CREATED, handleDirectoryCreated)
+            socket.off(SocketEvent.DIRECTORY_DELETED, handleDirectoryDeleted)
+            socket.off(SocketEvent.DIRECTORY_RENAMED, handleDirectoryRenamed)
+            socket.off(SocketEvent.FILE_UPDATED, handleFileUpdated)
+            socket.off(SocketEvent.DIRECTORY_UPDATED, handleDirectoryUpdated)
+            socket.off(SocketEvent.SYNC_FILE_STRUCTURE, handleSyncFileStructure)
+            socket.off(SocketEvent.ACTIVE_FILE_CHANGED, handleActiveFileChanged)
+            socket.off(SocketEvent.CLOSE_FILE_TAB, handleCloseFileTab)
+        }
+    }, [socket, createFile, deleteFile, renameFile, createDirectory, deleteDirectory, renameDirectory, updateFileContent, updateDirectory, openFile, closeFile])
 
     return (
         <FileContext.Provider value={{

@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import FileStructureView from "@/components/files/FileStructureView"
 import { useFileSystem } from "@/context/FileContext"
@@ -8,11 +7,14 @@ import { BiArchiveIn } from "react-icons/bi"
 import { TbFileUpload } from "react-icons/tb"
 import { v4 as uuidV4 } from "uuid"
 import { toast } from "react-hot-toast"
+import { useSocket } from "@/context/SocketContext"
+import { SocketEvent } from "@/types/socket"
 
 function FilesView() {
-    const { downloadFilesAndFolders, updateDirectory, fileTree } = useFileSystem()
+    const { downloadFilesAndFolders, updateDirectory, fileTree, fileStructure, openFiles, activeFile } = useFileSystem()
     const { viewHeight, minHeightReached } = useResponsive()
     const [isLoading, setIsLoading] = useState(false)
+    const { socket } = useSocket();
 
     const handleOpenDirectory = async () => {
         try {
@@ -41,6 +43,12 @@ function FilesView() {
                     if (files) {
                         const structure = await readFileList(files)
                         updateDirectory("", structure)
+                        // Emit sync event after updating directory
+                        socket.emit(SocketEvent.SYNC_FILE_STRUCTURE, {
+                            fileStructure: { ...fileStructure, children: structure },
+                            openFiles,
+                            activeFile,
+                        })
                         toast.success(`Loaded ${files.length} files`)
                     }
                 }
@@ -63,6 +71,12 @@ function FilesView() {
             toast.loading("Getting files and folders...")
             const structure = await readDirectory(directoryHandle)
             updateDirectory("", structure)
+            // Emit sync event after updating directory
+            socket.emit(SocketEvent.SYNC_FILE_STRUCTURE, {
+                fileStructure: { ...fileStructure, children: structure },
+                openFiles,
+                activeFile,
+            })
             toast.dismiss()
             toast.success("Directory loaded successfully")
         } catch (error) {

@@ -82,13 +82,17 @@ function RenameView({ id, preName, setEditing, type }) {
                 ref={formRef}
                 className="flex w-full items-center gap-2 rounded-md"
             >
-                <input
-                    type="text"
-                    className="w-full flex-grow rounded-sm bg-dark px-2 text-base text-white outline-none"
-                    autoFocus
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                />
+                <div style={{ position: 'relative', width: '100%' }}>
+                    <input
+                        autoFocus
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        onBlur={handleSubmit}
+                        onKeyDown={handleFormKeyDown}
+                        className="bg-gray-400 border-2 border-blue-400 rounded px-2 py-1 text-black outline-none absolute left-0 w-full z-10"
+                        style={{ minWidth: 80, top: '100%' }}
+                    />
+                </div>
             </form>
         </div>
     )

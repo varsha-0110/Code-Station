@@ -34,7 +34,9 @@ import { Socket } from "socket.io-client"
     REQUEST_DRAWING: "request-drawing",
     SYNC_DRAWING: "sync-drawing",
     DRAWING_UPDATE: "DRAWING_UPDATE",
-    NO_DRAWING_DATA: "no-drawing-data"
+    NO_DRAWING_DATA: "no-drawing-data",
+    ACTIVE_FILE_CHANGED: "active-file-changed",
+    CLOSE_FILE_TAB: "close-file-tab"
 }
 
 /**

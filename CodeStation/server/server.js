@@ -48,7 +48,9 @@ const SocketEvent = {
 	REQUEST_DRAWING: "request-drawing",
 	SYNC_DRAWING: "sync-drawing",
 	DRAWING_UPDATE: "DRAWING_UPDATE",
-	NO_DRAWING_DATA: "no-drawing-data"
+	NO_DRAWING_DATA: "no-drawing-data",
+	ACTIVE_FILE_CHANGED: "active-file-changed",
+	CLOSE_FILE_TAB: "close-file-tab"
 }
 
 // User Connection Status
@@ -380,6 +382,19 @@ io.on("connection", (socket) => {
 			snapshot,
 		});
 		console.log("Drawing update broadcasted to room:", roomId);
+	})
+
+	// Add this after other file events
+	socket.on(SocketEvent.ACTIVE_FILE_CHANGED, ({ fileId }) => {
+		const roomId = getRoomId(socket.id)
+		if (!roomId) return
+		socket.broadcast.to(roomId).emit(SocketEvent.ACTIVE_FILE_CHANGED, { fileId })
+	})
+
+	socket.on(SocketEvent.CLOSE_FILE_TAB, ({ fileId }) => {
+		const roomId = getRoomId(socket.id)
+		if (!roomId) return
+		socket.broadcast.to(roomId).emit(SocketEvent.CLOSE_FILE_TAB, { fileId })
 	})
 })
 
