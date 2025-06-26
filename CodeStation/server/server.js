@@ -12,6 +12,7 @@ const app = express()
 app.use(express.json())
 app.use(cors())
 app.use(express.static(path.join(__dirname, "public"))) // Serve static files
+app.use(express.static(path.join(__dirname, '../client/dist')))
 
 const server = http.createServer(app)
 const io = new Server(server, {
@@ -525,6 +526,11 @@ app.get("/", (req, res) => {
 	// Send the index.html file
 	res.sendFile(path.join(__dirname, "..", "public", "index.html"))
 })
+
+// Catch-all route: serve index.html for any unknown route (for React Router)
+app.get('*', (req, res) => {
+	res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+});
 
 server.listen(PORT, () => {
 	console.log(`Listening on port ${PORT}`)
