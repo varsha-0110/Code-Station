@@ -282,12 +282,14 @@ function Directory({ item, setSelectedDirId, selectedFiles = [] }) {
                     size={18}
                     title="Rename directory"
                     onClick={handleRenameDirectoryIcon}
+                    color="white"
                 />
                 <MdDelete
-                    className="ml-2 inline rounded-md hover:bg-red-700"
+                    className="ml-2 inline rounded-md hover:bg-darkHover"
                     size={18}
                     title="Delete directory"
                     onClick={e => handleDeleteDirectoryIcon(e, item.id)}
+                    color="white"
                 />
             </div>
             <div
@@ -396,12 +398,14 @@ const File = ({ item, setSelectedDirId, selectedFiles = [] }) => {
                 size={18}
                 title="Rename file"
                 onClick={e => { e.stopPropagation(); setEditing(true); }}
+                color="white"
             />
             <MdDelete
-                className="ml-2 inline rounded-md hover:bg-red-700"
+                className="ml-2 inline rounded-md hover:bg-darkHover"
                 size={18}
                 title="Delete file"
                 onClick={e => handleDeleteFile(e, item.id)}
+                color="white"
             />
         </div>
     )
@@ -417,14 +421,14 @@ const DirectoryMenu = ({ top, left, id, handleRenameDirectory, handleDeleteDirec
             onClick={handleRenameDirectory}
             className="flex w-full items-center gap-2 rounded-md px-2 py-1 hover:bg-darkHover"
         >
-            <PiPencilSimpleFill size={18} />
+            <PiPencilSimpleFill size={18} color="white" />
             Rename
         </button>
         <button
             onClick={(e) => handleDeleteDirectory(e, id)}
-            className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-danger hover:bg-darkHover"
+            className="flex w-full items-center gap-2 rounded-md px-2 py-1 hover:bg-darkHover"
         >
-            <MdDelete size={20} />
+            <MdDelete size={20} color="white" />
             Delete
         </button>
     </div>
