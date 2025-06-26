@@ -4,7 +4,7 @@ A collaborative, real-time code editor where users can seamlessly code together.
 
 ## 🚀 Live Preview
 
-Preview of the project : [here](https://code-sync-live.vercel.app/).
+Preview of the project : [CodeStation-URL](https://code-station-git-main-varsha-0110s-projects.vercel.app/).
 
 ## 🧑‍💻 Usage
 
