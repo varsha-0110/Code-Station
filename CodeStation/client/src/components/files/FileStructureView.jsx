@@ -219,15 +219,14 @@ function Directory({ item, setSelectedDirId, selectedFiles = [] }) {
         }
     }
 
-    // Handle directory rename from context menu
-    const handleRenameDirectory = (e) => {
+    // Handle directory rename with pencil icon
+    const handleRenameDirectoryIcon = (e) => {
         e.stopPropagation()
-        setMenuOpen(false)
         setEditing(true)
     }
 
-    // Handle directory deletion with confirmation
-    const handleDeleteDirectory = (e, id) => {
+    // Handle directory deletion with trash icon
+    const handleDeleteDirectoryIcon = (e, id) => {
         e.stopPropagation()
         setMenuOpen(false)
         const isConfirmed = confirm("Are you sure you want to delete directory?")
@@ -278,6 +277,18 @@ function Directory({ item, setSelectedDirId, selectedFiles = [] }) {
                         {item.name}
                     </p>
                 )}
+                <PiPencilSimpleFill
+                    className="ml-2 inline rounded-md hover:bg-blue-400"
+                    size={18}
+                    title="Rename directory"
+                    onClick={handleRenameDirectoryIcon}
+                />
+                <MdDelete
+                    className="ml-2 inline rounded-md hover:bg-red-700"
+                    size={18}
+                    title="Delete directory"
+                    onClick={e => handleDeleteDirectoryIcon(e, item.id)}
+                />
             </div>
             <div
                 className={cn(
@@ -296,16 +307,6 @@ function Directory({ item, setSelectedDirId, selectedFiles = [] }) {
                         />
                     ))}
             </div>
-
-            {menuOpen && (
-                <DirectoryMenu
-                    handleDeleteDirectory={handleDeleteDirectory}
-                    handleRenameDirectory={handleRenameDirectory}
-                    id={item.id}
-                    left={coords.x}
-                    top={coords.y}
-                />
-            )}
         </div>
     )
 }
@@ -366,7 +367,6 @@ const File = ({ item, setSelectedDirId, selectedFiles = [] }) => {
             onContextMenu={e => {
                 e.preventDefault();
                 setMenuOpen(true);
-                // Set menu position to mouse click
                 coords.x = e.clientX;
                 coords.y = e.clientY;
             }}
@@ -391,38 +391,21 @@ const File = ({ item, setSelectedDirId, selectedFiles = [] }) => {
                     {item.name}
                 </p>
             )}
+            <PiPencilSimpleFill
+                className="ml-2 inline rounded-md hover:bg-blue-400"
+                size={18}
+                title="Rename file"
+                onClick={e => { e.stopPropagation(); setEditing(true); }}
+            />
             <MdDelete
                 className="ml-2 inline rounded-md hover:bg-red-700"
                 size={18}
                 title="Delete file"
                 onClick={e => handleDeleteFile(e, item.id)}
             />
-            {menuOpen && (
-                <FileMenu
-                    top={coords.y}
-                    left={coords.x}
-                    handleRenameFile={() => setEditing(true)}
-                />
-            )}
         </div>
     )
 }
-
-// Context menu for file operations (rename, delete)
-const FileMenu = ({ top, left, handleRenameFile }) => (
-    <div
-        className="absolute z-10 w-[150px] rounded-md border border-darkHover bg-dark p-1"
-        style={{ top, left }}
-    >
-        <button
-            onClick={handleRenameFile}
-            className="flex w-full items-center gap-2 rounded-md px-2 py-1 hover:bg-darkHover"
-        >
-            <PiPencilSimpleFill size={18} />
-            Rename
-        </button>
-    </div>
-)
 
 // Context menu for directory operations (rename, delete)
 const DirectoryMenu = ({ top, left, id, handleRenameDirectory, handleDeleteDirectory }) => (
