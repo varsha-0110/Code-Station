@@ -7,18 +7,20 @@ function HomePage() {
   const [particles, setParticles] = useState([]);
 
   const codeContent = [
-    { line: 1, content: '<span class="text-pink-400">function</span> <span class="text-blue-400">createAnimation</span>() {' },
-    { line: 2, content: '  <span class="text-pink-400">const</span> <span class="text-cyan-400">elements</span> <span class="text-red-400">=</span> <span class="text-yellow-300">"coding magic"</span>;' },
-    { line: 3, content: '  <span class="text-pink-400">for</span> (<span class="text-pink-400">let</span> <span class="text-cyan-400">i</span> <span class="text-red-400">=</span> <span class="text-yellow-300">0</span>; <span class="text-cyan-400">i</span> <span class="text-red-400">&lt;</span> <span class="text-cyan-400">elements</span>.<span class="text-blue-400">length</span>; <span class="text-cyan-400">i</span><span class="text-red-400">++</span>) {' },
-    { line: 4, content: '    <span class="text-blue-400">animate</span>(<span class="text-cyan-400">elements</span>[<span class="text-cyan-400">i</span>]);' },
-    { line: 5, content: '  }' },
-    { line: 6, content: '  <span class="text-blue-400">// Magic happens here ✨</span>' },
-    { line: 7, content: '  <span class="text-pink-400">return</span> <span class="text-yellow-300">"✨ Beautiful Code ✨"</span>;' },
-    { line: 8, content: '}' },
-    { line: 9, content: '' },
-    { line: 10, content: '<span class="text-blue-400">// Execute the magic</span>' },
-    { line: 11, content: '<span class="text-blue-400">createAnimation</span>();<span class="inline-block w-0.5 h-4 bg-blue-400 ml-0.5 animate-blink"></span>' }
-  ];
+  { line: 1, content: '<span class="text-pink-400">function</span> <span class="text-blue-400">codeSync</span>() {' },
+  { line: 2, content: '  <span class="text-pink-400">const</span> <span class="text-cyan-400">appName</span> <span class="text-red-400">=</span> <span class="text-yellow-300">"CodeStation"</span>;' },
+  { line: 3, content: '  <span class="text-pink-400">const</span> <span class="text-cyan-400">slogan</span> <span class="text-red-400">=</span> <span class="text-yellow-300">"Board to Code"</span>;' },
+  { line: 4, content: '  <span class="text-pink-400">for</span> (<span class="text-pink-400">let</span> <span class="text-cyan-400">i</span> <span class="text-red-400">=</span> <span class="text-yellow-300">0</span>; <span class="text-cyan-400">i</span> <span class="text-red-400">&lt;</span> <span class="text-cyan-400">appName</span>.<span class="text-blue-400">length</span>; <span class="text-cyan-400">i</span><span class="text-red-400">++</span>) {' },
+  { line: 5, content: '    <span class="text-blue-400">animate</span>(<span class="text-cyan-400">appName</span>[<span class="text-cyan-400">i</span>]);' },
+  { line: 6, content: '  }' },
+  { line: 7, content: '  <span class="text-blue-400">// Real-time sync magic starts here ⚡</span>' },
+  { line: 8, content: '  <span class="text-blue-400">syncCode</span>(<span class="text-yellow-300">"collaborators"</span>, <span class="text-yellow-300">"shared session"</span>);' },
+  { line: 9, content: '  <span class="text-pink-400">return</span> <span class="text-yellow-300">`🚀 Welcome to ${appName} – ${slogan} ✨`</span>;' },
+  { line: 10, content: '}' },
+  { line: 11, content: '<span class="text-blue-400">// Initiate Code Sync Magic</span>' },
+  { line: 12, content: '<span class="text-blue-400">codeSync</span>();<span class="inline-block w-0.5 h-4 bg-blue-400 ml-0.5 animate-blink"></span>' }
+];
+
 
   const createCodeLines = () => {
     setCodeLines([]);
@@ -64,8 +66,8 @@ function HomePage() {
       className="relative w-full h-screen flex items-center justify-center overflow-hidden font-mono"
     >
       {/* Floating Elements */}
-      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-        <div className="absolute top-[20%] right-[15%] text-2xl opacity-70 text-pink-400 animate-float" style={{ animationDelay: '0.5s' }}>{ }</div>
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+        <div className="absolute top-[20%] left-[10%] text-2xl opacity-70 text-pink-400 animate-float" style={{ animationDelay: '0.5s' }}>{"{ }"}</div>
         <div className="absolute top-[20%] right-[15%] text-2xl opacity-70 text-cyan-400 animate-float" style={{ animationDelay: '1s' }}>&lt;/&gt;</div>
         <div className="absolute bottom-[15%] left-[20%] text-2xl opacity-70 text-blue-400 animate-float" style={{ animationDelay: '2s' }}>[ ]</div>
         <div className="absolute bottom-[10%] right-[10%] text-2xl opacity-70 text-yellow-300 animate-float" style={{ animationDelay: '3s' }}>( )</div>
