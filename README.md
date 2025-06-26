@@ -6,7 +6,7 @@ A collaborative, real-time code editor where users can seamlessly code together.
 
 Preview of the project : [here](https://code-sync-live.vercel.app/).
 
-##🧑‍💻 Usage
+## 🧑‍💻 Usage
 
 1. Enter a username and room ID to join a room.
 2. Edit code in the editor.
