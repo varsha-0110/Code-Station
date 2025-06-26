@@ -1,37 +1,60 @@
 # CodeStation - Code__Create_Collabrate
-Getting Started
-Fork the Repository: Click the "Fork" button at the top right of the repository page on GitHub to create your copy.
 
-Clone the Repository: Clone your forked repository to your local machine:
+A collaborative, real-time code editor where users can seamlessly code together. It provides a platform for multiple users to enter a room, share a unique room ID, and collaborate on code simultaneously.
 
-git clone https://github.com/<your_username>/Code-Station.git
-Making Changes
-Implement Your Contribution: Make your changes, ensuring they align with the project's goals.
-Test Your Changes: Test thoroughly to ensure everything works as expected.
-Switch to Your Branch: Before making changes, switch to your feature branch:
-git checkout <your_branch_name>
-Commit Changes: Commit your changes with a clear message:
-git add .
-git commit -m "Add a description of your changes"
-Push Changes: Push your changes to your forked repository:
-git push origin <your_branch_name>
-Submitting a Pull Request
-Create a Pull Request: Go to your forked repository on GitHub, create a new Pull Request with a clear title and description.
-Describe Changes: Clearly describe the changes you made and why they are valuable.
-Review: Your PR will be reviewed by project maintainers. Be responsive to feedback.
-Merge: Once approved, your contribution will be merged into the main branch.
-Reporting Bugs
-If you find a bug while using Code Sync, please report it by opening an issue on Github. Please include the following information:
+## 🚀 Live Preview
 
-Description of the bug
-Steps to reproduce the bug
-Screenshots or videos demonstrating the bug, if possible
-The expected outcome vs. the actual outcome
-Any other relevant information, such as the operating system and browser version you are using.
-Suggesting New Features
-If you have an idea for a new feature, please let us know by opening an issue on Github. Describe the proposed feature and the benefits it would bring to the project. We appreciate well thought out suggestions, so please consider including mockups, diagrams, or examples to illustrate your point.
+Preview of the project : [here](https://code-sync-live.vercel.app/).
 
-Fixing Typos
-If you notice a spelling mistake or grammatical error in the project's documentation or comments, please correct it and submit a pull request. Thank you!
+##🧑‍💻 Usage
 
-Thank You!
+1. Enter a username and room ID to join a room.
+2. Edit code in the editor.
+3. Others joining the same room can do chat and discuss.
+4. Switch to drawing mode to sketch ideas.
+5. Run code in supported languages using the Run tab.
+
+## ⚙️ Installation
+
+### Method 1: Manual Installation
+
+1. **Fork this repository:** Click the Fork button located in the top-right corner of this page.
+2. **Clone the repository:**
+   ```bash
+   git clone https://github.com/<your-username>/Code-Sync.git
+   ```
+3. **Create .env file:**
+   Inside the client and server directories create `.env` and set:
+
+   Frontend:
+
+   ```bash
+   VITE_BACKEND_URL=<your_server_url>
+   ```
+
+   Backend:
+
+   ```bash
+   PORT=3000
+   ```
+
+4. **Install dependencies:**
+   ```bash
+   npm install     # Run in both client and server directories
+   ```
+5. **Start the servers:**
+   Frontend:
+   ```bash
+   cd client
+   npm run dev
+   ```
+   Backend:
+   ```bash
+   cd server
+   npm run dev
+   ```
+6. **Access the application:**
+   ```bash
+   http://localhost:5173/
+
+
