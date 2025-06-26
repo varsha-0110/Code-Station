@@ -1,4 +1,4 @@
-import illustration from "@/assets/illustration.svg"
+
 import FormComponent from "@/components/forms/FormComponent"
 import { useState, useEffect } from 'react';
 
