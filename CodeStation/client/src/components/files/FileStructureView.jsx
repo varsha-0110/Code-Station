@@ -285,11 +285,11 @@ function Directory({ item, setSelectedDirId, selectedFiles = [] }) {
                     color="white"
                 />
                 <MdDelete
-                    className="ml-2 inline rounded-md hover:bg-darkHover"
+                    className="ml-2 inline rounded-md hover:bg-red-700"
                     size={18}
                     title="Delete directory"
                     onClick={e => handleDeleteDirectoryIcon(e, item.id)}
-                    color="white"
+                    color="#ef4444"
                 />
             </div>
             <div
@@ -401,11 +401,11 @@ const File = ({ item, setSelectedDirId, selectedFiles = [] }) => {
                 color="white"
             />
             <MdDelete
-                className="ml-2 inline rounded-md hover:bg-darkHover"
+                className="ml-2 inline rounded-md hover:bg-red-700"
                 size={18}
                 title="Delete file"
                 onClick={e => handleDeleteFile(e, item.id)}
-                color="white"
+                color="#ef4444"
             />
         </div>
     )
@@ -426,9 +426,9 @@ const DirectoryMenu = ({ top, left, id, handleRenameDirectory, handleDeleteDirec
         </button>
         <button
             onClick={(e) => handleDeleteDirectory(e, id)}
-            className="flex w-full items-center gap-2 rounded-md px-2 py-1 hover:bg-darkHover"
+            className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-danger hover:bg-red-700"
         >
-            <MdDelete size={20} color="white" />
+            <MdDelete size={20} color="#ef4444" />
             Delete
         </button>
     </div>
