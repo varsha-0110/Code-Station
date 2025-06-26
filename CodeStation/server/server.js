@@ -64,6 +64,8 @@ let userSocketMap = []
 let roomDrawingData = new Map() // roomId -> drawingData
 // Store chat messages per room - this persists the chat history
 let roomChatMessages = new Map() // roomId -> array of messages
+// Add this near the top, after other room maps
+let roomFileStructures = new Map(); // roomId -> { fileStructure, openFiles, activeFile }
 
 // Function to get all users in a room
 function getUsersInRoom(roomId) {
@@ -114,6 +116,11 @@ function saveRoomChatMessage(roomId, message) {
 	messages.push(message)
 	roomChatMessages.set(roomId, messages)
 	console.log(`Saved message to room ${roomId}: ${message.content}`)
+}
+
+// Helper to update file structure in memory
+function applyFileChangeToStructure(structure, changeFn) {
+	return changeFn(structure)
 }
 
 io.on("connection", (socket) => {
@@ -170,6 +177,23 @@ io.on("connection", (socket) => {
 			// Let the client know there's no drawing data to sync
 			io.to(socket.id).emit(SocketEvent.NO_DRAWING_DATA)
 		}
+
+		// Send current file structure and open files for the room
+		const roomState = roomFileStructures.get(roomId)
+		if (roomState) {
+			io.to(socket.id).emit(SocketEvent.SYNC_FILE_STRUCTURE, {
+				fileStructure: roomState.fileStructure,
+				openFiles: roomState.openFiles,
+				activeFile: roomState.activeFile,
+			})
+		} else {
+			// If no state, send empty initial structure
+			io.to(socket.id).emit(SocketEvent.SYNC_FILE_STRUCTURE, {
+				fileStructure: { name: "root", id: "root", type: "directory", children: [] },
+				openFiles: [],
+				activeFile: null,
+			})
+		}
 	})
 
 	socket.on("disconnecting", () => {
@@ -194,6 +218,7 @@ io.on("connection", (socket) => {
 		({ fileStructure, openFiles, activeFile }) => {
 			const roomId = getRoomId(socket.id);
 			if (!roomId) return;
+			updateRoomState(roomId, { fileStructure, openFiles, activeFile })
 			socket.broadcast.to(roomId).emit(SocketEvent.SYNC_FILE_STRUCTURE, {
 				fileStructure,
 				openFiles,
@@ -202,73 +227,137 @@ io.on("connection", (socket) => {
 		}
 	);
 
-	socket.on(
-		SocketEvent.DIRECTORY_CREATED,
-		({ parentDirId, newDirectory }) => {
-			const roomId = getRoomId(socket.id)
-			if (!roomId) return
-			socket.broadcast.to(roomId).emit(SocketEvent.DIRECTORY_CREATED, {
-				parentDirId,
-				newDirectory,
-			})
+	socket.on(SocketEvent.DIRECTORY_CREATED, ({ parentDirId, newDirectory }) => {
+		const roomId = getRoomId(socket.id)
+		if (!roomId) return
+		// Update file structure in room state
+		const prev = roomFileStructures.get(roomId)
+		let fileStructure = prev ? prev.fileStructure : { name: "root", id: "root", type: "directory", children: [] }
+		// Add the new directory to the correct parent
+		function addDir(dir) {
+			if (dir.id === parentDirId) {
+				return { ...dir, children: [...(dir.children || []), newDirectory] }
+			} else if (dir.children) {
+				return { ...dir, children: dir.children.map(addDir) }
+			}
+			return dir
 		}
-	)
+		const updatedStructure = applyFileChangeToStructure(fileStructure, addDir)
+		updateRoomState(roomId, { fileStructure: updatedStructure })
+		socket.broadcast.to(roomId).emit(SocketEvent.DIRECTORY_CREATED, { parentDirId, newDirectory })
+	})
 
 	socket.on(SocketEvent.DIRECTORY_UPDATED, ({ dirId, children }) => {
 		const roomId = getRoomId(socket.id)
 		if (!roomId) return
-		socket.broadcast.to(roomId).emit(SocketEvent.DIRECTORY_UPDATED, {
-			dirId,
-			children,
-		})
+		const prev = roomFileStructures.get(roomId)
+		let fileStructure = prev ? prev.fileStructure : { name: "root", id: "root", type: "directory", children: [] }
+		function updateDir(dir) {
+			if (dir.id === dirId) return { ...dir, children }
+			if (dir.children) return { ...dir, children: dir.children.map(updateDir) }
+			return dir
+		}
+		const updatedStructure = updateDir(fileStructure)
+		updateRoomState(roomId, { fileStructure: updatedStructure })
+		socket.broadcast.to(roomId).emit(SocketEvent.DIRECTORY_UPDATED, { dirId, children })
 	})
 
 	socket.on(SocketEvent.DIRECTORY_RENAMED, ({ dirId, newName }) => {
 		const roomId = getRoomId(socket.id)
 		if (!roomId) return
-		socket.broadcast.to(roomId).emit(SocketEvent.DIRECTORY_RENAMED, {
-			dirId,
-			newName,
-		})
+		const prev = roomFileStructures.get(roomId)
+		let fileStructure = prev ? prev.fileStructure : { name: "root", id: "root", type: "directory", children: [] }
+		function renameDir(dir) {
+			if (dir.id === dirId) return { ...dir, name: newName }
+			if (dir.children) return { ...dir, children: dir.children.map(renameDir) }
+			return dir
+		}
+		const updatedStructure = renameDir(fileStructure)
+		updateRoomState(roomId, { fileStructure: updatedStructure })
+		socket.broadcast.to(roomId).emit(SocketEvent.DIRECTORY_RENAMED, { dirId, newName })
 	})
 
 	socket.on(SocketEvent.DIRECTORY_DELETED, ({ dirId }) => {
 		const roomId = getRoomId(socket.id)
 		if (!roomId) return
-		socket.broadcast
-			.to(roomId)
-			.emit(SocketEvent.DIRECTORY_DELETED, { dirId })
+		const prev = roomFileStructures.get(roomId)
+		let fileStructure = prev ? prev.fileStructure : { name: "root", id: "root", type: "directory", children: [] }
+		function removeDir(dir) {
+			if (dir.id === dirId) return null
+			if (dir.children) {
+				const children = dir.children.map(removeDir).filter(Boolean)
+				return { ...dir, children }
+			}
+			return dir
+		}
+		const updatedStructure = removeDir(fileStructure)
+		updateRoomState(roomId, { fileStructure: updatedStructure })
+		socket.broadcast.to(roomId).emit(SocketEvent.DIRECTORY_DELETED, { dirId })
 	})
 
 	socket.on(SocketEvent.FILE_CREATED, ({ parentDirId, newFile }) => {
 		const roomId = getRoomId(socket.id)
 		if (!roomId) return
-		socket.broadcast
-			.to(roomId)
-			.emit(SocketEvent.FILE_CREATED, { parentDirId, newFile })
+		const prev = roomFileStructures.get(roomId)
+		let fileStructure = prev ? prev.fileStructure : { name: "root", id: "root", type: "directory", children: [] }
+		function addFile(dir) {
+			if (dir.id === parentDirId) {
+				return { ...dir, children: [...(dir.children || []), newFile] }
+			} else if (dir.children) {
+				return { ...dir, children: dir.children.map(addFile) }
+			}
+			return dir
+		}
+		const updatedStructure = applyFileChangeToStructure(fileStructure, addFile)
+		updateRoomState(roomId, { fileStructure: updatedStructure })
+		socket.broadcast.to(roomId).emit(SocketEvent.FILE_CREATED, { parentDirId, newFile })
 	})
 
 	socket.on(SocketEvent.FILE_UPDATED, ({ fileId, newContent }) => {
 		const roomId = getRoomId(socket.id)
 		if (!roomId) return
-		socket.broadcast.to(roomId).emit(SocketEvent.FILE_UPDATED, {
-			fileId,
-			newContent,
-		})
+		const prev = roomFileStructures.get(roomId)
+		let fileStructure = prev ? prev.fileStructure : { name: "root", id: "root", type: "directory", children: [] }
+		function updateFile(dir) {
+			if (dir.type === "file" && dir.id === fileId) return { ...dir, content: newContent }
+			if (dir.children) return { ...dir, children: dir.children.map(updateFile) }
+			return dir
+		}
+		const updatedStructure = updateFile(fileStructure)
+		updateRoomState(roomId, { fileStructure: updatedStructure })
+		socket.broadcast.to(roomId).emit(SocketEvent.FILE_UPDATED, { fileId, newContent })
 	})
 
 	socket.on(SocketEvent.FILE_RENAMED, ({ fileId, newName }) => {
 		const roomId = getRoomId(socket.id)
 		if (!roomId) return
-		socket.broadcast.to(roomId).emit(SocketEvent.FILE_RENAMED, {
-			fileId,
-			newName,
-		})
+		const prev = roomFileStructures.get(roomId)
+		let fileStructure = prev ? prev.fileStructure : { name: "root", id: "root", type: "directory", children: [] }
+		function renameFile(dir) {
+			if (dir.type === "file" && dir.id === fileId) return { ...dir, name: newName }
+			if (dir.children) return { ...dir, children: dir.children.map(renameFile) }
+			return dir
+		}
+		const updatedStructure = renameFile(fileStructure)
+		updateRoomState(roomId, { fileStructure: updatedStructure })
+		socket.broadcast.to(roomId).emit(SocketEvent.FILE_RENAMED, { fileId, newName })
 	})
 
 	socket.on(SocketEvent.FILE_DELETED, ({ fileId }) => {
 		const roomId = getRoomId(socket.id)
 		if (!roomId) return
+		const prev = roomFileStructures.get(roomId)
+		let fileStructure = prev ? prev.fileStructure : { name: "root", id: "root", type: "directory", children: [] }
+		function removeFile(dir) {
+			if (dir.type === "file" && dir.id === fileId) return null
+			if (dir.children) {
+				const children = dir.children.map(removeFile).filter(Boolean)
+				return { ...dir, children }
+			}
+			return dir
+		}
+		const updatedStructure = removeFile(fileStructure)
+		updateRoomState(roomId, { fileStructure: updatedStructure })
 		socket.broadcast.to(roomId).emit(SocketEvent.FILE_DELETED, { fileId })
 	})
 
@@ -388,14 +477,46 @@ io.on("connection", (socket) => {
 	socket.on(SocketEvent.ACTIVE_FILE_CHANGED, ({ fileId }) => {
 		const roomId = getRoomId(socket.id)
 		if (!roomId) return
+		// Update activeFile and openFiles in room state
+		const prev = roomFileStructures.get(roomId)
+		let fileStructure = prev ? prev.fileStructure : { name: "root", id: "root", type: "directory", children: [] }
+		// Helper to find file by id
+		function findFile(dir, id) {
+			if (dir.type === "file" && dir.id === id) return dir
+			if (dir.children) {
+				for (const child of dir.children) {
+					const found = findFile(child, id)
+					if (found) return found
+				}
+			}
+			return null
+		}
+		const fileObj = findFile(fileStructure, fileId)
+		let openFiles = prev ? prev.openFiles || [] : []
+		if (fileObj && !openFiles.some(f => f.id === fileId)) {
+			openFiles = [...openFiles, fileObj]
+		}
+		updateRoomState(roomId, { activeFile: fileObj, openFiles })
 		socket.broadcast.to(roomId).emit(SocketEvent.ACTIVE_FILE_CHANGED, { fileId })
 	})
 
 	socket.on(SocketEvent.CLOSE_FILE_TAB, ({ fileId }) => {
 		const roomId = getRoomId(socket.id)
 		if (!roomId) return
+		// Remove from openFiles in room state
+		const prev = roomFileStructures.get(roomId)
+		let openFiles = prev ? prev.openFiles || [] : []
+		openFiles = openFiles.filter(f => f.id !== fileId)
+		let activeFile = prev && prev.activeFile && prev.activeFile.id === fileId ? null : prev.activeFile
+		updateRoomState(roomId, { openFiles, activeFile })
 		socket.broadcast.to(roomId).emit(SocketEvent.CLOSE_FILE_TAB, { fileId })
 	})
+
+	// --- File/Directory actions: update room state ---
+	function updateRoomState(roomId, partial) {
+		const prev = roomFileStructures.get(roomId) || { fileStructure: { name: "root", id: "root", type: "directory", children: [] }, openFiles: [], activeFile: null }
+		roomFileStructures.set(roomId, { ...prev, ...partial })
+	}
 })
 
 const PORT = process.env.PORT || 3000

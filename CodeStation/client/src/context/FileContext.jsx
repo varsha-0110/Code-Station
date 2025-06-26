@@ -33,32 +33,9 @@ function FileContextProvider({ children }) {
     const { socket } = useSocket()
     const { setUsers, drawingData } = useAppContext()
 
-    // Load from localStorage if available
-    const [fileStructure, setFileStructure] = useState(() => {
-        const saved = localStorage.getItem('fileStructure')
-        return saved ? JSON.parse(saved) : initialFileStructure
-    })
-    const [openFiles, setOpenFiles] = useState(() => {
-        const saved = localStorage.getItem('openFiles')
-        return saved ? JSON.parse(saved) : []
-    })
-    const [activeFile, setActiveFile] = useState(() => {
-        const saved = localStorage.getItem('activeFile')
-        return saved ? JSON.parse(saved) : null
-    })
-
-    // Persist fileStructure to localStorage on every change
-    useEffect(() => {
-        localStorage.setItem('fileStructure', JSON.stringify(fileStructure))
-    }, [fileStructure])
-
-    // Persist openFiles and activeFile to localStorage on every change
-    useEffect(() => {
-        localStorage.setItem('openFiles', JSON.stringify(openFiles))
-    }, [openFiles])
-    useEffect(() => {
-        localStorage.setItem('activeFile', JSON.stringify(activeFile))
-    }, [activeFile])
+    const [fileStructure, setFileStructure] = useState(initialFileStructure)
+    const [openFiles, setOpenFiles] = useState([])
+    const [activeFile, setActiveFile] = useState(null)
 
     const toggleDirectory = (dirId) => {
         const toggleDir = (directory) => {
