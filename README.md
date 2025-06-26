@@ -16,8 +16,6 @@ Preview of the project : [here](https://code-sync-live.vercel.app/).
 
 ## ⚙️ Installation
 
-### Method 1: Manual Installation
-
 1. **Fork this repository:** Click the Fork button located in the top-right corner of this page.
 2. **Clone the repository:**
    ```bash
