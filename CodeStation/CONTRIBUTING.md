@@ -1,4 +1,4 @@
-# Contributing to Code Sync
+# Contributing to Code Station
 
 We welcome contributions to the CodeStation project! Whether you're reporting a bug, suggesting a new feature, or fixing a typo, your input is valuable to us. Here are some guidelines to help you get started:
 
@@ -56,7 +56,3 @@ If you notice a spelling mistake or grammatical error in the project's documenta
 
 ## Thank You!
 
-Thank you for contributing to Code Sync! Your efforts make a difference.
-If you have questions or need assistance, contact the project maintainers.
-
-Happy contributing!
